@@ -59,6 +59,10 @@ impl RavenConfig {
 
         Ok(())
     }
+
+    pub fn add_known_feather(&mut self, feather: Feather) {
+        self.known_feathers.insert(feather);
+    }
 }
 
 impl Default for RavenConfig {
