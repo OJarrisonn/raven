@@ -3,6 +3,8 @@ use std::{collections::HashSet, fs, io};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::consts::LISTEN_DEFAULT_PORT;
+
 #[derive(Serialize, Deserialize)]
 pub struct RavenConfig {
     #[serde(skip)]
@@ -18,6 +20,7 @@ pub struct RavenConfig {
 pub struct Feather {
     pub id: String,
     pub host: String,
+    pub port: u16,
     pub alias: String,
 }
 
@@ -64,7 +67,7 @@ impl Default for RavenConfig {
     fn default() -> Self {
         Self { 
             config_file: Default::default(), 
-            feather: Feather { id: Uuid::new_v4().into(), host: Default::default(), alias: "@localhost".into() }, 
+            feather: Feather { id: Uuid::new_v4().into(), host: Default::default(), port: LISTEN_DEFAULT_PORT, alias: "@localhost".into() }, 
             known_feathers: Default::default(), 
             known_max_bytes: 0,
             unknown_max_bytes: 1024,

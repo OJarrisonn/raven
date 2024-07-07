@@ -1,4 +1,5 @@
-pub const LISTEN_DEFAULT_ADDRESS: &str = "0.0.0.0:23455";
+pub const LISTEN_DEFAULT_ADDRESS: &str = "0.0.0.0";
+pub const LISTEN_DEFAULT_PORT: u16 = 12345;
 
 pub fn get_config_file_name() -> String {
     std::env::var("RAVEN_CONFIG")

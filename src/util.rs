@@ -20,5 +20,5 @@ impl Display for RavenError {
 impl Error for RavenError {}
 
 pub fn assert_ipv4_address(address: &str) -> bool {
-    Regex::new("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}:[0-9]{1,5}$").unwrap().is_match(address)
+    Regex::new("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$").unwrap().is_match(address)
 }

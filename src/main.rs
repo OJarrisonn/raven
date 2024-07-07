@@ -8,7 +8,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::signal;
 use tokio::{io::AsyncReadExt, net::TcpListener};
-use util::RavenError;
+use util::{assert_ipv4_address, RavenError};
 
 mod cli;
 mod consts;
@@ -20,15 +20,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     let res = match cli.commands {
-        cli::Subcommands::Receive { from } => {
-            if Regex::new("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}:[0-9]{1,5}$").unwrap().is_match(&from) {
-                receive(from).await
+        cli::Subcommands::Receive { from, port } => {
+            if assert_ipv4_address(&from) {
+                receive(format!("{}:{}", from, port)).await
             } else {
                 eprintln!("[RECEIVE]: Invalid address format: {}", from);
                 Ok(())
             }
         },
-        cli::Subcommands::Send { to, message } => send(to, message).await,
+        cli::Subcommands::Send { to, port, message } => send(to, port, message).await,
     };
 
     return res;
@@ -41,9 +41,11 @@ async fn receive(address: String) -> Result<(), Box<dyn Error>> {
         return Err(RavenError::InvalidAddress(address).into());
     }
 
-    let listener = TcpListener::bind(address);
+    let listener = TcpListener::bind(&address);
     let config = RavenConfig::load_or_create(".raven.conf".into())?;
     let listener = listener.await?;
+
+    println!("[RECEIVE]: Listening on {}", &address);
 
     loop {
         tokio::select! {
@@ -69,14 +71,14 @@ async fn receive(address: String) -> Result<(), Box<dyn Error>> {
     Ok(())
 } 
 
-async fn send(address: String, message: String) -> Result<(), Box<dyn Error>> {
+async fn send(address: String, port: u16, message: String) -> Result<(), Box<dyn Error>> {
     let config = RavenConfig::load_or_create(".raven.conf".into())?;
 
     let address = if util::assert_ipv4_address(&address) { 
-        address 
+        format!("{}:{}", address, port) 
     } else {
         match config.known_feathers.iter().find(|f| f.alias == address) {
-            Some(feather) => feather.host.clone(),
+            Some(feather) => format!("{}:{}", &feather.host, &feather.port),
             None => {
                 eprintln!("[SEND]: Unknown feather alias: {}", address);
                 return Ok(());
