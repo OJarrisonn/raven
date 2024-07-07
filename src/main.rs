@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::future::IntoFuture;
 
 use clap::Parser;
 use cli::Cli;
@@ -28,8 +27,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 /// Function to start a receiving client
 async fn receive(address: String) -> Result<(), Box<dyn Error>> {
-    let listener = TcpListener::bind(address).await?;
+    let listener = TcpListener::bind(address);
     let config = RavenConfig::load_or_create(get_config_file_name())?;
+    let listener = listener.await?;
 
     loop {
         tokio::select! {
