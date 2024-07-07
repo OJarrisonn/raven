@@ -5,25 +5,20 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct RavenConfig {
-    #[serde(skip_serializing)]
+    #[serde(skip)]
     pub config_file: String,
-    pub feather: String,
+    pub feather: Feather,
     pub known_feathers: HashSet<Feather>,
-    pub permissions: PermissionConfig,
+    pub known_max_bytes: usize,
+    pub unknown_max_bytes: usize,
+    pub unknown_files: bool
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct Feather {
-    pub feather: String,
+    pub id: String,
     pub host: String,
     pub alias: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct PermissionConfig {
-    pub known_max_bytes: usize,
-    pub unknown_max_bytes: usize,
-    pub unknown_files: bool
 }
 
 impl RavenConfig {
@@ -69,13 +64,11 @@ impl Default for RavenConfig {
     fn default() -> Self {
         Self { 
             config_file: Default::default(), 
-            feather: Uuid::new_v4().into(), 
+            feather: Feather { id: Uuid::new_v4().into(), host: Default::default(), alias: "@localhost".into() }, 
             known_feathers: Default::default(), 
-            permissions: PermissionConfig {
-                known_max_bytes: 0,
-                unknown_max_bytes: 1024,
-                unknown_files: false,
-            } 
+            known_max_bytes: 0,
+            unknown_max_bytes: 1024,
+            unknown_files: false,
         }
     }
 }
