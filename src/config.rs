@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fs};
+use std::{collections::HashSet, fs, io};
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -27,7 +27,7 @@ pub struct PermissionConfig {
 }
 
 impl RavenConfig {
-    pub fn load(config_file: String) -> Result<RavenConfig, Box<dyn std::error::Error>> {
+    fn load(config_file: String) -> Result<RavenConfig, Box<dyn std::error::Error>> {
         let config = fs::read_to_string(&config_file)?;
 
         let mut config: RavenConfig = toml::from_str(&config)?;
@@ -39,19 +39,17 @@ impl RavenConfig {
     pub fn load_or_create(config_file: String) -> Result<RavenConfig, Box<dyn std::error::Error>> {
         match Self::load(config_file.clone()) {
             Ok(config) => Ok(config),
-            Err(_) => {
-                let mut config = RavenConfig::default();
-                config.config_file = config_file;
-                config.save()?;
-                Ok(config)
+            Err(err) => {
+                if err.is::<io::Error>() {
+                    let mut config = RavenConfig::default();
+                    config.config_file = config_file;
+                    config.save()?;
+                    Ok(config)
+                } else {
+                    Err(err)
+                }
             },
         }
-    }
-
-    pub fn reload(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let updated = Self::load(self.config_file.clone())?;
-        *self = updated;
-        Ok(())
     }
 
     pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
