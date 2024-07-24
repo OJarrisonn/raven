@@ -33,4 +33,17 @@ pub enum Subcommands {
         #[arg(value_name = "MESSAGE")]
         message: String,
     },
+
+    /// Sends a file by a raven to another client
+    SendFile {
+        /// The raven's destination address
+        #[arg(long, value_name = "DESTINATION")]
+        to: String,
+        /// The port where the raven must arrive
+        #[arg(short, long, value_name = "PORT", default_value_t = LISTEN_DEFAULT_PORT.into())]
+        port: u16,
+        /// The file the raven must send
+        #[arg(value_name = "FILE")]
+        file: String,
+    },
 }

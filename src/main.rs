@@ -6,8 +6,10 @@ use std::{
 
 use clap::Parser;
 use cli::Cli;
+use raven::Raven;
 
 mod cli;
+mod raven;
 mod util;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -16,6 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match cli.commands {
         cli::Subcommands::Receive { from, port } => receive(from, port),
         cli::Subcommands::Send { to, port, message } => send(to, port, message),
+        cli::Subcommands::SendFile { to, port, file } => send_file(to, port, file),
     }
 }
 
@@ -36,9 +39,10 @@ fn receive(from: String, port: u16) -> Result<(), Box<dyn Error>> {
         let mut stream = stream?;
         println!("Connection established: {:?}", stream);
 
-        let mut msg = String::new();
-        stream.read_to_string(&mut msg)?;
-        println!("Received message: {}", msg);
+        let mut buffer = Vec::new();
+        stream.read_to_end(&mut buffer)?;
+        let rv = bincode::deserialize::<Raven>(&buffer)?;
+        println!("Received raven: {:?}", rv);
     }
 
     Ok(())
@@ -56,8 +60,41 @@ fn send(to: String, port: u16, message: String) -> Result<(), Box<dyn Error>> {
     let mut stream = TcpStream::connect(format!("{}:{}", to, port))?;
     println!("Connected to {}:{}", to, port);
 
-    stream.write_all(message.as_bytes())?;
-    println!("Message sent: {}", message);
+    let rv = Raven::Text { text: message };
+    let encoded = bincode::serialize(&rv)?;
+
+    stream.write_all(&encoded)?;
+    println!("Message sent: {:?}", rv);
+
+    Ok(())
+}
+
+/// Sends a file by a raven to another client.
+/// The target client is specified by the `to` ipv4 address and `port`. The file is a `String` with the file path.
+/// It will send only one file and finishes, the TCP protocol will take care of the rest.
+/// If the target is offline, the connection will fail and the function will return an error.
+/// If the file isn't found, the function will return an error.
+fn send_file(to: String, port: u16, file: String) -> Result<(), Box<dyn Error>> {
+    if !util::is_ipv4_address(&to) {
+        return Err("Invalid address".into());
+    }
+
+    let mut stream = TcpStream::connect(format!("{}:{}", to, port))?;
+    println!("Connected to {}:{}", to, port);
+
+    let mut f = std::fs::File::open(&file)?;
+    let mut content = Vec::new();
+    f.read_to_end(&mut content)?;
+
+    let rv = Raven::File {
+        name: file.clone(),
+        content,
+    };
+
+    let encoded = bincode::serialize(&rv)?;
+
+    stream.write_all(&encoded)?;
+    println!("File sent: {:?}", rv);
 
     Ok(())
 }
