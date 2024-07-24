@@ -1,24 +1,15 @@
-use std::{error::Error, fmt::{self, Display, Formatter}};
+pub const LISTEN_DEFAULT_ADDRESS: &str = "0.0.0.0";
+pub const LISTEN_DEFAULT_PORT: u16 = 12345;
 
-use regex::Regex;
-
-#[derive(Debug)]
-pub enum RavenError {
-    FileNotFound,
-    InvalidAddress(String)
+pub fn get_config_file_name() -> String {
+    std::env::var("RAVEN_CONFIG").unwrap_or(format!(
+        "{}/.config/Raven.toml",
+        std::env::var("HOME").expect(
+            "No HOME environment variable defined. Problably running on unsupported platform"
+        )
+    ))
 }
 
-impl Display for RavenError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self {
-            RavenError::FileNotFound => write!(f, "File not found"),
-            RavenError::InvalidAddress(address) => write!(f, "Invalid address format: {}", address)
-        }
-    }
-}
-
-impl Error for RavenError {}
-
-pub fn assert_ipv4_address(address: &str) -> bool {
-    Regex::new("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$").unwrap().is_match(address)
+pub fn is_ipv4_address(address: &str) -> bool {
+    address.parse::<std::net::Ipv4Addr>().is_ok()
 }
