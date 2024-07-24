@@ -42,7 +42,14 @@ fn receive(from: String, port: u16) -> Result<(), Box<dyn Error>> {
         let mut buffer = Vec::new();
         stream.read_to_end(&mut buffer)?;
         let rv = bincode::deserialize::<Raven>(&buffer)?;
-        println!("Received raven: {:?}", rv);
+
+        match rv {
+            Raven::Text { text } => println!("Received text: {}", text),
+            Raven::File { name, content } => {
+                std::fs::write(&name, content)?;
+                println!("Received file: {}", name);
+            }
+        }
     }
 
     Ok(())
@@ -87,7 +94,7 @@ fn send_file(to: String, port: u16, file: String) -> Result<(), Box<dyn Error>> 
     f.read_to_end(&mut content)?;
 
     let rv = Raven::File {
-        name: file.clone(),
+        name: file[(file.rfind('/').map(|p| p + 1).unwrap_or(0))..].to_string(),
         content,
     };
 
