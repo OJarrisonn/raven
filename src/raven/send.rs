@@ -1,7 +1,10 @@
-use std::{error::Error, io::{Read, Write}, net::TcpStream};
+use std::{
+    error::Error,
+    io::{Read, Write},
+    net::TcpStream,
+};
 
 use crate::{raven::Raven, util};
-
 
 /// Sends a message by a raven to another client.
 /// The target client is specified by the `to` ipv4 address and `port`. The message is a `String`.

@@ -36,28 +36,28 @@ impl Config {
                     path.pop();
                 }
                 path
-            },
+            }
             Err(_) => {
                 let path = homedir::my_home().unwrap().unwrap();
 
                 format!("{}/.raven", path.to_str().unwrap())
-            },
+            }
         }
     }
 
     /// Loads the configuration from the raven home folder in config.toml.
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
         let config_path = format!("{}/config.toml", Self::raven_home());
-        
+
         match std::fs::read_to_string(config_path) {
             Ok(config) => Ok(toml::from_str(&config)?),
             Err(_) => {
                 let config = Self::new();
-                
+
                 config.save()?;
 
                 Ok(config)
-            },
+            }
         }
     }
 

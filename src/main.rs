@@ -16,9 +16,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match cli.commands {
         Subcommands::Receive { from, port } => receive::receive(
-            from.unwrap_or(config.receiver.address.clone()), 
+            from.unwrap_or(config.receiver.address.clone()),
             port.unwrap_or(config.receiver.port),
-            config
+            config,
         ),
         Subcommands::Send { to, port, message } => send::send(&to, port, message),
         Subcommands::SendFile { to, port, file } => send::send_file(&to, port, file),
