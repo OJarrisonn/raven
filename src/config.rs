@@ -1,4 +1,7 @@
-use serde_derive::{Deserialize, Serialize};
+use std::io::ErrorKind;
+
+use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
 
 use crate::util::{self, ensure_folder, LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
 
@@ -49,23 +52,35 @@ impl Config {
     }
 
     /// Loads the configuration from the raven home folder in config.toml.
-    pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn load() -> Result<Self> {
         let config_path = format!("{}/config.toml", Self::raven_home());
 
-        match std::fs::read_to_string(config_path) {
-            Ok(config) => Ok(toml::from_str(&config)?),
-            Err(_) => {
-                let config = Self::new();
+        match std::fs::read_to_string(&config_path) {
+            Ok(config) => Ok(toml::from_str(&config).context(format!(
+                "Failed to deserialize the config file from {}",
+                &config_path
+            ))?),
+            Err(e) => {
+                if ErrorKind::NotFound == e.kind() {
+                    let config = Self::new();
 
-                config.save()?;
+                    config
+                        .save()
+                        .context("Failed to save the just created config file")?;
 
-                Ok(config)
+                    Ok(config)
+                } else {
+                    Err(e).context(format!(
+                        "Failed to read the config file from {}",
+                        &config_path
+                    ))
+                }
             }
         }
     }
 
     /// Saves the configuration to the raven home folder in config.toml.
-    pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn save(&self) -> Result<()> {
         let config_path = format!("{}/config.toml", self.raven_home);
         let config = toml::to_string(self)?;
 

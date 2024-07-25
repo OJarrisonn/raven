@@ -1,7 +1,6 @@
-use std::error::Error;
-
+use anyhow::{bail, Context, Result};
 use chrono::{DateTime, Utc};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use toml::value::Datetime;
 
 use crate::{cli::MailboxSubcommands, config::Config, util};
@@ -45,7 +44,7 @@ impl MailBox {
         }
     }
 
-    pub fn open(config: &Config) -> Result<Self, Box<dyn Error>> {
+    pub fn open(config: &Config) -> Result<Self> {
         if !std::path::Path::new(&format!("{}/mailbox.toml", config.raven_home)).exists() {
             return Ok(Self::new());
         }
@@ -54,10 +53,13 @@ impl MailBox {
         Ok(toml::from_str::<Self>(&content)?)
     }
 
-    pub fn save(&self, config: &Config) -> Result<(), Box<dyn Error>> {
-        let content = toml::to_string(self)?;
+    pub fn save(&self, config: &Config) -> Result<()> {
+        let content = toml::to_string(self).context("Serializing the mailbox before saving")?;
         util::ensure_folder(&config.raven_home)?;
-        std::fs::write(format!("{}/mailbox.toml", config.raven_home), content)?;
+        std::fs::write(format!("{}/mailbox.toml", config.raven_home), content).context(format!(
+            "Saving the mailbox to {}/mailbox.toml",
+            config.raven_home
+        ))?;
 
         Ok(())
     }
@@ -184,7 +186,7 @@ impl Summarizable for MailFile {
     }
 }
 
-pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn Error>> {
+pub fn manage(command: MailboxSubcommands, config: Config) -> Result<()> {
     let mut mailbox = MailBox::open(&config)?;
 
     match command {
@@ -195,7 +197,7 @@ pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn
             message,
         } => {
             if file && message {
-                return Err("You can't delete a file and a message at the same time".into());
+                bail!("You can't delete a file and a message at the same time");
             }
 
             if file {
@@ -203,7 +205,7 @@ pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn
             } else if message {
                 mailbox.remove_message(index);
             } else {
-                return Err("You must specify if you want to delete a file or a message".into());    
+                bail!("You must specify if you want to delete a file or a message");
             }
 
             mailbox.save(&config)?;
@@ -214,7 +216,7 @@ pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn
             message,
         } => {
             if file && message {
-                return Err("You can't show a file and a message at the same time".into());
+                bail!("You can't show a file and a message at the same time");
             }
 
             if file {
@@ -222,7 +224,7 @@ pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn
             } else if message {
                 mailbox.show_message(index);
             } else {
-                return Err("You must specify if you want to see a file or a message".into());
+                bail!("You must specify if you want to see a file or a message");
             }
         }
     }

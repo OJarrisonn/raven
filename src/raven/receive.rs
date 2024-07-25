@@ -1,4 +1,6 @@
-use std::{error::Error, io::Read, net::TcpListener};
+use std::{io::Read, net::TcpListener};
+
+use anyhow::{bail, Context, Result};
 
 use crate::{
     config::Config,
@@ -11,24 +13,44 @@ use crate::{
 /// The receiver will listen on the provided ipv4 address(`from`) and `port`.
 ///
 /// This function actually only returns an error if the connection fails to be established. Otherwise it will loop forever.
-pub(crate) fn receive(from: String, port: u16, config: Config) -> Result<(), Box<dyn Error>> {
+pub(crate) fn receive(from: String, port: u16, config: Config) -> Result<()> {
     if !util::is_ipv4_address(&from) {
-        return Err("Invalid address".into());
+        bail!("Invalid ipv4 address {}", from);
     }
 
     let listener = TcpListener::bind(format!("{}:{}", &from, port))?;
     println!("Listening on {}:{}", from, port);
 
     for stream in listener.incoming() {
-        let mut stream = stream?;
-        println!("Connection established: {:?}", stream);
+        let mut stream = match stream {
+            Ok(stream) => stream,
+            Err(e) => {
+                eprintln!("Failed to establish a connection with: {}", e);
+                continue;
+            }
+        };
+
+        let sender = stream
+            .peer_addr()
+            .map(|addr| addr.to_string())
+            .unwrap_or("".into());
+
+        println!("Connection established: {}", &sender);
 
         let mut buffer = Vec::new();
-        stream.read_to_end(&mut buffer)?;
-        let rv = bincode::deserialize::<Raven>(&buffer)?;
+        if let Err(e) = stream.read_to_end(&mut buffer).context("Receiving raven") {
+            eprintln!("Failed to read the message: {}", e);
+            continue;
+        }
+        let rv = match bincode::deserialize::<Raven>(&buffer).context("Deserializing received raven") {
+            Ok(rv) => rv,
+            Err(e) => {
+                eprintln!("Failed to deserialize the received raven: {}", e);
+                continue;
+            }
+        };
 
-        let sender = stream.peer_addr()?.to_string();
-        let mut mailbox = MailBox::open(&config)?; // Opens the mailbox to save the received messages
+        let mut mailbox = MailBox::open(&config).context("Opening the mailbox")?; // Opens the mailbox to save the received messages
 
         match rv {
             Raven::Text { text } => {
@@ -38,16 +60,27 @@ pub(crate) fn receive(from: String, port: u16, config: Config) -> Result<(), Box
             Raven::File { name, content } => {
                 // Gets the folder where the files will be stored and ensures that it exists
                 let raven_arrivals = format!("{}/data", &config.raven_home);
-                util::ensure_folder(&raven_arrivals)?;
+                if let Err(e) = util::ensure_folder(&raven_arrivals)
+                    .context("Failed to create the folder to store files")
+                {
+                    eprintln!("{}", e);
+                    continue;
+                }
 
                 // Gets a non colliding filename
                 let path = format!("{}/{}", raven_arrivals, name);
                 let path = util::non_colliding_filename(&path);
 
                 // Writes the file to the disk
-                std::fs::write(&path, content)?;
+                if let Err(e) = std::fs::write(&path, content).context("Saving the received file") {
+                    eprintln!("Failed to write the file: {}", e);
+                    continue;
+                }
+
                 mailbox.add_file(sender, chrono::Utc::now(), path);
-                mailbox.save(&config)?;
+                mailbox
+                    .save(&config)
+                    .context("Saving the mailbox with the new received data")?;
             }
         }
     }

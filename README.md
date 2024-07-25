@@ -1,4 +1,6 @@
-# Raven
+<h1 align="center">Raven</h1>
+
+<div align="center"></div>
 
 Share data across your machines in local networks.
 
@@ -34,7 +36,7 @@ Every subcommand has a `--help` page where one may find more info.
 
 ### Receiving
 
-Currently Raven doesn't work in background quite properly. You must keep a running instance of `raven receive`. The option `--from` and `--port` override the options `receiver.address` and `receiver.port`, respectively, in the `config.toml` to open a tcp listener where incoming ravens arrive.
+Currently Raven doesn't work in background quite properly. You must keep a running instance of `raven receive`. The option `--from` and `--port` override the options `receiver.address` and `receiver.port`, respectively, in the `config.toml` to open a tcp listener where incoming ravens arrive. The receiver will store the messages in the [mailbox](#mailbox)
 
 Files sent will be saved to `$HOME/.raven/data/` with the same name it has on the sending host.
 
@@ -43,6 +45,18 @@ Files sent will be saved to `$HOME/.raven/data/` with the same name it has on th
 There are two subcommands useful for sending data: `send` and `send-file`.
 
 The former is used to send text messages, the later to send files. Both commands require the receiver's address via `--to` flag and optionally the port (`--port`) where the receiving host is probably waiting for ravens.
+
+### Mailbox
+
+The mailbox is where one manages the received messages, there are 3 subcommands: 
+
+- `list`: shows the received ravens, use `--file` or `--message` to filter
+- `show`: shows the content of a received text raven or the path of a received file by it's `id` (shown in the `list`) use `--file` or `--message` to indicate which one to show
+- `delete`: deletes a message (`--message`) or a file (`--file`) from the mailbox by it's `id`. If deleting a file, the file will also be deleted from the file system.
+
+Every received raven holds the information about the sender, when it arrived and it's content.
+
+The mailbox entries can be checked out in the `mailbox.toml` file in the raven home folder.
 
 ### Configuration
 

@@ -14,8 +14,8 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Subcommands {
-    /// Opens the client for receiving messages from a raven. 
-    /// Messages received will be saved in the mailbox. 
+    /// Opens the client for receiving messages from a raven.
+    /// Messages received will be saved in the mailbox.
     /// Files are saved in the raven home directory under the `data/` folder.
     Receive {
         /// The address where to open the socket for the raven to arrive (defaults to receiver.address in config.toml)
