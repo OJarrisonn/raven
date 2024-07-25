@@ -5,20 +5,28 @@ use std::{
 };
 
 use clap::Parser;
-use cli::Cli;
+use cli::{Cli, Subcommands};
+use config::Config;
 use raven::Raven;
+use util::basename;
 
 mod cli;
+mod config;
 mod raven;
 mod util;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
+    let config = Config::load()?;
 
     match cli.commands {
-        cli::Subcommands::Receive { from, port } => receive(from, port),
-        cli::Subcommands::Send { to, port, message } => send(to, port, message),
-        cli::Subcommands::SendFile { to, port, file } => send_file(to, port, file),
+        Subcommands::Receive { from, port } => receive(
+            from.unwrap_or(config.receiver.address.clone()), 
+            port.unwrap_or(config.receiver.port),
+            config
+        ),
+        Subcommands::Send { to, port, message } => send(&to, port, message),
+        Subcommands::SendFile { to, port, file } => send_file(&to, port, file),
     }
 }
 
@@ -27,12 +35,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 /// The receiver will listen on the provided ipv4 address(`from`) and `port`.
 /// 
 /// This function actually only returns an error if the connection fails to be established. Otherwise it will loop forever.
-fn receive(from: String, port: u16) -> Result<(), Box<dyn Error>> {
+fn receive(from: String, port: u16, config: Config) -> Result<(), Box<dyn Error>> {
     if !util::is_ipv4_address(&from) {
         return Err("Invalid address".into());
     }
 
-    let listener = TcpListener::bind(format!("{}:{}", from, port))?;
+    let listener = TcpListener::bind(format!("{}:{}", &from, port))?;
     println!("Listening on {}:{}", from, port);
 
     for stream in listener.incoming() {
@@ -46,7 +54,10 @@ fn receive(from: String, port: u16) -> Result<(), Box<dyn Error>> {
         match rv {
             Raven::Text { text } => println!("Received text: {}", text),
             Raven::File { name, content } => {
-                std::fs::write(&name, content)?;
+                let raven_arrivals = format!("{}/data", &config.raven_home);
+                util::ensure_folder(&raven_arrivals)?;
+                
+                std::fs::write(format!("{}/{}", raven_arrivals, name), content)?;
                 println!("Received file: {}", name);
             }
         }
@@ -59,8 +70,8 @@ fn receive(from: String, port: u16) -> Result<(), Box<dyn Error>> {
 /// The target client is specified by the `to` ipv4 address and `port`. The message is a `String`.
 /// It will send only one message and finishes, the TCP protocol will take care of the rest.
 /// If the target is offline, the connection will fail and the function will return an error.
-fn send(to: String, port: u16, message: String) -> Result<(), Box<dyn Error>> {
-    if !util::is_ipv4_address(&to) {
+fn send(to: &str, port: u16, message: String) -> Result<(), Box<dyn Error>> {
+    if !util::is_ipv4_address(to) {
         return Err("Invalid address".into());
     }
 
@@ -81,8 +92,8 @@ fn send(to: String, port: u16, message: String) -> Result<(), Box<dyn Error>> {
 /// It will send only one file and finishes, the TCP protocol will take care of the rest.
 /// If the target is offline, the connection will fail and the function will return an error.
 /// If the file isn't found, the function will return an error.
-fn send_file(to: String, port: u16, file: String) -> Result<(), Box<dyn Error>> {
-    if !util::is_ipv4_address(&to) {
+fn send_file(to: &str, port: u16, file: String) -> Result<(), Box<dyn Error>> {
+    if !util::is_ipv4_address(to) {
         return Err("Invalid address".into());
     }
 
@@ -94,7 +105,7 @@ fn send_file(to: String, port: u16, file: String) -> Result<(), Box<dyn Error>> 
     f.read_to_end(&mut content)?;
 
     let rv = Raven::File {
-        name: file[(file.rfind('/').map(|p| p + 1).unwrap_or(0))..].to_string(),
+        name: basename(&file).to_string(),
         content,
     };
 

@@ -1,11 +1,12 @@
 use serde_derive::{Deserialize, Serialize};
 
-use crate::util::{LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
+use crate::util::{ensure_folder, LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
 
 /// Describes the configuration of the raven client.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     /// The path to the home folder of the raven client.
+    #[serde(skip, default = "Config::raven_home")]
     pub raven_home: String,
     /// The receiver configuration.
     pub receiver: Receiver,
@@ -30,7 +31,12 @@ impl Config {
         let raven_home = std::env::var("RAVEN_HOME");
 
         match raven_home {
-            Ok(path) => path,
+            Ok(mut path) => {
+                if path.ends_with('/') {
+                    path.pop();
+                }
+                path
+            },
             Err(_) => {
                 let path = homedir::my_home().unwrap().unwrap();
 
@@ -39,6 +45,7 @@ impl Config {
         }
     }
 
+    /// Loads the configuration from the raven home folder in config.toml.
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
         let config_path = format!("{}/config.toml", Self::raven_home());
         
@@ -48,10 +55,12 @@ impl Config {
         }
     }
 
+    /// Saves the configuration to the raven home folder in config.toml.
     pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
         let config_path = format!("{}/config.toml", self.raven_home);
         let config = toml::to_string(self)?;
 
+        ensure_folder(&self.raven_home)?;
         std::fs::write(config_path, config)?;
 
         Ok(())
