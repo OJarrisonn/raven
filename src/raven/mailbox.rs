@@ -1,8 +1,8 @@
 use std::error::Error;
 
-use chrono::{DateTime, Datelike, Timelike, Utc};
+use chrono::{DateTime, Utc};
 use serde_derive::{Deserialize, Serialize};
-use toml::value::{Date, Datetime, Time};
+use toml::value::Datetime;
 
 use crate::{cli::MailboxSubcommands, config::Config, util};
 
@@ -128,7 +128,10 @@ impl MailBox {
     pub fn show_message(&self, index: usize) {
         if let Some(message) = self.messages.get(index) {
             println!("Message from: {}", message.from);
-            println!("When: {}", util::fmt_datetime(util::toml_to_chrono_datetime(message.when)));
+            println!(
+                "When: {}",
+                util::fmt_datetime(util::toml_to_chrono_datetime(message.when))
+            );
             println!("{}", message.text);
         } else {
             println!("Message `{}` not found", index);
@@ -138,7 +141,10 @@ impl MailBox {
     pub fn show_file(&self, index: usize) {
         if let Some(file) = self.files.get(index) {
             println!("File from: {}", file.from);
-            println!("When: {}", util::fmt_datetime(util::toml_to_chrono_datetime(file.when)));
+            println!(
+                "When: {}",
+                util::fmt_datetime(util::toml_to_chrono_datetime(file.when))
+            );
             println!("File: {}", file.name);
         } else {
             println!("File `{}` not found", index);
@@ -151,15 +157,30 @@ impl Summarizable for MailMessage {
         const SUMMARY_LEN: usize = 32;
 
         let summary = self.text.chars().take(SUMMARY_LEN).collect::<String>();
-        let dots = if self.text.len() > SUMMARY_LEN { "..." } else { "" };
+        let dots = if self.text.len() > SUMMARY_LEN {
+            "..."
+        } else {
+            ""
+        };
 
-        format!("[{}] From: {} :: {}{}", util::fmt_datetime(util::toml_to_chrono_datetime(self.when)), self.from, summary, dots)
+        format!(
+            "[{}] From: {} :: {}{}",
+            util::fmt_datetime(util::toml_to_chrono_datetime(self.when)),
+            self.from,
+            summary,
+            dots
+        )
     }
 }
 
 impl Summarizable for MailFile {
     fn summary(&self) -> String {
-        format!("[{}] From: {} :: {}", util::fmt_datetime(util::toml_to_chrono_datetime(self.when)), self.from, self.name)
+        format!(
+            "[{}] From: {} :: {}",
+            util::fmt_datetime(util::toml_to_chrono_datetime(self.when)),
+            self.from,
+            self.name
+        )
     }
 }
 
