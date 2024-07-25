@@ -18,6 +18,7 @@ Raven is a CLI tool for people that work with multiple machines and often need a
 - **Trustness**: authentication system to mark some clients as trusty clients so they can use different transfer limits
 - **Encryption**: encrypt data being shared to keep your privacy
 - **Integration**: integrate `raven` with tools as `xclip`, `bat`, etc. to provide a better user experience 
+- **Configuration Port**: older version configurations can be auto ported to newer versions
 
 ## Installation
 
