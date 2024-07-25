@@ -50,19 +50,35 @@ mod tests {
     #[test]
     fn test_name_collision() {
         // Some example files
-        let files = vec!["/tmp/file.txt", "/tmp/file_1.txt", "/tmp/file.txt.gz", "/tmp/file_3.txt"];
-        
+        let files = vec![
+            "/tmp/file.txt",
+            "/tmp/file_1.txt",
+            "/tmp/file.txt.gz",
+            "/tmp/file_3.txt",
+        ];
+
         files.iter().for_each(|file| {
             if !std::path::Path::new(file).exists() {
                 std::fs::File::create(file).expect("Failed to create file");
             }
-        });   
+        });
 
-        let non_colliding = files.iter().map(|file| super::non_colliding_filename(file)).collect::<Vec<String>>();
-        
+        let non_colliding = files
+            .iter()
+            .map(|file| super::non_colliding_filename(file))
+            .collect::<Vec<String>>();
+
         non_colliding.iter().for_each(|file| {
-            assert!(!files.contains(&file.as_str()), "The file `{}` is colliding with the original files", file);
-            assert!(!std::path::Path::new(&file).exists(), "The file `{}` souldn't exist", file);
+            assert!(
+                !files.contains(&file.as_str()),
+                "The file `{}` is colliding with the original files",
+                file
+            );
+            assert!(
+                !std::path::Path::new(&file).exists(),
+                "The file `{}` souldn't exist",
+                file
+            );
         });
     }
 }

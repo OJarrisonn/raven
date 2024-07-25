@@ -1,6 +1,10 @@
 use std::{error::Error, io::Read, net::TcpListener};
 
-use crate::{config::Config, raven::{mailbox::MailBox, Raven}, util};
+use crate::{
+    config::Config,
+    raven::{mailbox::MailBox, Raven},
+    util,
+};
 
 /// Opens the client for receiving messages from a raven
 /// The receiver works in a loop, listening for incoming connections and printing the received message.
@@ -27,15 +31,15 @@ pub(crate) fn receive(from: String, port: u16, config: Config) -> Result<(), Box
         let mut mailbox = MailBox::open(&config)?; // Opens the mailbox to save the received messages
 
         match rv {
-            Raven::Text { text } => { 
+            Raven::Text { text } => {
                 mailbox.add_message(sender, chrono::Utc::now(), text);
                 mailbox.save(&config)?;
-            },
+            }
             Raven::File { name, content } => {
                 // Gets the folder where the files will be stored and ensures that it exists
                 let raven_arrivals = format!("{}/data", &config.raven_home);
                 util::ensure_folder(&raven_arrivals)?;
-                
+
                 // Gets a non colliding filename
                 let path = format!("{}/{}", raven_arrivals, name);
                 let path = util::non_colliding_filename(&path);
