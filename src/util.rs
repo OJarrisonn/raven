@@ -1,5 +1,6 @@
 use std::{ffi::OsStr, path::Path};
 
+use anyhow::{Context, Result};
 use chrono::{Datelike, Local, TimeZone, Timelike, Utc};
 use toml::value::{Date, Datetime, Time};
 
@@ -23,14 +24,15 @@ pub fn basename<'path>(path: &'path str) -> &'path str {
 }
 
 /// Ensures that the given folder does exist.
-pub fn ensure_folder(path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn ensure_folder(path: &str) -> Result<()> {
     let path = std::path::Path::new(path);
 
     if !path.exists() {
-        std::fs::create_dir_all(path)?;
+        std::fs::create_dir_all(&path)
+            .context(format!("Creating folder: {}", &path.to_str().unwrap()))
+    } else {
+        Ok(())
     }
-
-    Ok(())
 }
 
 /// Returns a filename that doesn't collide with the existing files.

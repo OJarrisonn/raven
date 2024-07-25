@@ -1,5 +1,4 @@
-use std::error::Error;
-
+use anyhow::Result;
 use clap::Parser;
 use cli::{Cli, Subcommands};
 use config::Config;
@@ -7,10 +6,11 @@ use raven::{mailbox, receive, send};
 
 mod cli;
 mod config;
+mod error;
 mod raven;
 mod util;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     let cli = Cli::parse();
     let config = Config::load()?;
 
