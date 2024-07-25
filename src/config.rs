@@ -51,7 +51,13 @@ impl Config {
         
         match std::fs::read_to_string(config_path) {
             Ok(config) => Ok(toml::from_str(&config)?),
-            Err(_) => Ok(Self::new()),
+            Err(_) => {
+                let config = Self::new();
+                
+                config.save()?;
+
+                Ok(config)
+            },
         }
     }
 
