@@ -1,6 +1,6 @@
 use serde_derive::{Deserialize, Serialize};
 
-use crate::util::{ensure_folder, LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
+use crate::util::{self, ensure_folder, LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
 
 /// Describes the configuration of the raven client.
 #[derive(Debug, Serialize, Deserialize)]
@@ -9,6 +9,7 @@ pub struct Config {
     #[serde(skip, default = "Config::raven_home")]
     pub raven_home: String,
     /// The receiver configuration.
+    #[serde(default = "Receiver::default")]
     pub receiver: Receiver,
 }
 
@@ -16,8 +17,10 @@ pub struct Config {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Receiver {
     /// The ipv4 address where the receiver will listen.
+    #[serde(default = "util::listen_default_address")]
     pub address: String,
     /// The port where the receiver will listen.
+    #[serde(default = "util::listen_default_port")]
     pub port: u16,
 }
 

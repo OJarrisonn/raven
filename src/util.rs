@@ -6,6 +6,14 @@ use toml::value::{Date, Datetime, Time};
 pub const LISTEN_DEFAULT_ADDRESS: &str = "0.0.0.0";
 pub const LISTEN_DEFAULT_PORT: u16 = 12345;
 
+pub fn listen_default_address() -> String {
+    LISTEN_DEFAULT_ADDRESS.into()
+}
+
+pub fn listen_default_port() -> u16 {
+    LISTEN_DEFAULT_PORT
+}
+
 pub fn is_ipv4_address(address: &str) -> bool {
     address.parse::<std::net::Ipv4Addr>().is_ok()
 }
