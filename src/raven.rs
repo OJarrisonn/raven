@@ -1,5 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 
+pub mod receive;
+
 /// The raven is the message that the client will send or receive.
 /// It can be both a text message or a file.
 /// 
