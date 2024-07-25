@@ -29,6 +29,7 @@ struct MailFile {
     pub from: String,
     pub when: Datetime,
     pub name: String,
+    // TODO: Store the file hash to check when deleting
 }
 
 trait Summarizable {
@@ -83,12 +84,21 @@ impl MailBox {
 
     /// Removes a message from the mailbox.
     pub fn remove_message(&mut self, index: usize) {
+        if index >= self.messages.len() {
+            println!("Message `{}` not found", index);
+            return;
+        }
         self.messages.remove(index);
     }
 
     /// Removes a file from the mailbox.
     pub fn remove_file(&mut self, index: usize) {
-        self.files.remove(index);
+        if index >= self.files.len() {
+            println!("File `{}` not found", index);
+            return;
+        }
+        let file = self.files.remove(index);
+        let _ = std::fs::remove_file(&file.name).map_err(|e| println!("Failed to remove file: {}", e));
     }
 
     pub fn list(&self, mut messages: bool, mut files: bool) {
