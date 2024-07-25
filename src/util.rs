@@ -56,8 +56,8 @@ pub fn chrono_to_toml_date(date: chrono::NaiveDate) -> Date {
     }
 }
 
-pub fn chrono_to_toml_datetime(date: chrono::NaiveDateTime) -> Datetime {
-    let tdate = chrono_to_toml_date(date.date());
+pub fn chrono_to_toml_datetime(date: chrono::DateTime<Utc>) -> Datetime {
+    let tdate = chrono_to_toml_date(date.date_naive());
     let time = Time {
         hour: date.hour() as u8,
         minute: date.minute() as u8,
@@ -88,7 +88,7 @@ pub fn toml_to_chrono_datetime(date: Datetime) -> chrono::NaiveDateTime {
 pub fn fmt_datetime(date: chrono::NaiveDateTime) -> String {
     let date = Utc.from_utc_datetime(&date);
     let date = date.with_timezone(&Local);
-    
+
     date.format("%Y/%m/%d %H:%M:%S").to_string()
 }
 

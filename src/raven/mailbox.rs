@@ -64,46 +64,14 @@ impl MailBox {
 
     /// Adds a new message to the mailbox.
     pub fn add_message(&mut self, from: String, when: DateTime<Utc>, text: String) {
-        let date = Date {
-            year: when.year() as u16,
-            month: when.month() as u8,
-            day: when.day() as u8,
-        };
-        let time = Time {
-            hour: when.hour() as u8,
-            minute: when.minute() as u8,
-            second: when.second() as u8,
-            nanosecond: 0,
-        };
-
-        let when = Datetime {
-            date: Some(date),
-            time: Some(time),
-            offset: None,
-        };
+        let when = util::chrono_to_toml_datetime(when);
 
         self.messages.push(MailMessage { from, when, text });
     }
 
     /// Adds a new file to the mailbox.
     pub fn add_file(&mut self, from: String, when: DateTime<Utc>, name: String) {
-        let date = Date {
-            year: when.year() as u16,
-            month: when.month() as u8,
-            day: when.day() as u8,
-        };
-        let time = Time {
-            hour: when.hour() as u8,
-            minute: when.minute() as u8,
-            second: when.second() as u8,
-            nanosecond: 0,
-        };
-
-        let when = Datetime {
-            date: Some(date),
-            time: Some(time),
-            offset: None,
-        };
+        let when = util::chrono_to_toml_datetime(when);
 
         self.files.push(MailFile { from, when, name });
     }
@@ -159,6 +127,8 @@ impl MailBox {
 
     pub fn show_message(&self, index: usize) {
         if let Some(message) = self.messages.get(index) {
+            println!("Message from: {}", message.from);
+            println!("When: {}", util::fmt_datetime(util::toml_to_chrono_datetime(message.when)));
             println!("{}", message.text);
         } else {
             println!("Message `{}` not found", index);
@@ -167,6 +137,8 @@ impl MailBox {
 
     pub fn show_file(&self, index: usize) {
         if let Some(file) = self.files.get(index) {
+            println!("File from: {}", file.from);
+            println!("When: {}", util::fmt_datetime(util::toml_to_chrono_datetime(file.when)));
             println!("File: {}", file.name);
         } else {
             println!("File `{}` not found", index);
@@ -177,20 +149,17 @@ impl MailBox {
 impl Summarizable for MailMessage {
     fn summary(&self) -> String {
         const SUMMARY_LEN: usize = 32;
-        let summary = self.text.chars().take(SUMMARY_LEN).collect::<String>();
-        let dots = if self.text.len() > SUMMARY_LEN {
-            "..."
-        } else {
-            ""
-        };
 
-        format!("[{}] From: {} :: {}{}", self.when, self.from, summary, dots)
+        let summary = self.text.chars().take(SUMMARY_LEN).collect::<String>();
+        let dots = if self.text.len() > SUMMARY_LEN { "..." } else { "" };
+
+        format!("[{}] From: {} :: {}{}", util::fmt_datetime(util::toml_to_chrono_datetime(self.when)), self.from, summary, dots)
     }
 }
 
 impl Summarizable for MailFile {
     fn summary(&self) -> String {
-        format!("[{}] From: {} :: {}", self.when, self.from, self.name)
+        format!("[{}] From: {} :: {}", util::fmt_datetime(util::toml_to_chrono_datetime(self.when)), self.from, self.name)
     }
 }
 
