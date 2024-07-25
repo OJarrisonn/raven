@@ -1,7 +1,8 @@
 use std::error::Error;
 
+use chrono::{DateTime, Datelike, Timelike, Utc};
 use serde_derive::{Deserialize, Serialize};
-use toml::value::Datetime;
+use toml::value::{Date, Datetime, Time};
 
 use crate::{cli::MailboxSubcommands, config::Config, util};
 
@@ -9,7 +10,7 @@ use crate::{cli::MailboxSubcommands, config::Config, util};
 /// 
 /// The mailbox is filled by the `receive` subcommand, while can be managed by the `mailbox` subcommand.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct MailBox {
+pub struct MailBox {
     pub messages: Vec<MailMessage>,
     pub files: Vec<MailFile>,
 }
@@ -61,12 +62,22 @@ impl MailBox {
     }
 
     /// Adds a new message to the mailbox.
-    pub fn add_message(&mut self, from: String, when: Datetime, text: String) {
+    pub fn add_message(&mut self, from: String, when: DateTime<Utc>, text: String) {
+        let date = Date { year: when.year() as u16, month: when.month() as u8, day: when.day() as u8 };
+        let time = Time { hour: when.hour() as u8, minute: when.minute() as u8, second: when.second() as u8, nanosecond: 0 };
+
+        let when = Datetime { date: Some(date), time: Some(time), offset: None };
+
         self.messages.push(MailMessage { from, when, text });
     }
 
     /// Adds a new file to the mailbox.
-    pub fn add_file(&mut self, from: String, when: Datetime, name: String) {
+    pub fn add_file(&mut self, from: String, when: DateTime<Utc>, name: String) {
+        let date = Date { year: when.year() as u16, month: when.month() as u8, day: when.day() as u8 };
+        let time = Time { hour: when.hour() as u8, minute: when.minute() as u8, second: when.second() as u8, nanosecond: 0 };
+
+        let when = Datetime { date: Some(date), time: Some(time), offset: None };
+
         self.files.push(MailFile { from, when, name });
     }
 
@@ -159,6 +170,8 @@ pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn
             if message {
                 mailbox.remove_message(index);
             }
+
+            mailbox.save(&config)?;
         },
         MailboxSubcommands::Show { index, file, message } => {
             if file && message {

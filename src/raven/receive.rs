@@ -1,6 +1,6 @@
 use std::{error::Error, io::Read, net::TcpListener};
 
-use crate::{config::Config, raven::Raven, util};
+use crate::{config::Config, raven::{mailbox::MailBox, Raven}, util};
 
 /// Opens the client for receiving messages from a raven
 /// The receiver works in a loop, listening for incoming connections and printing the received message.
@@ -23,8 +23,14 @@ pub(crate) fn receive(from: String, port: u16, config: Config) -> Result<(), Box
         stream.read_to_end(&mut buffer)?;
         let rv = bincode::deserialize::<Raven>(&buffer)?;
 
+        let sender = stream.peer_addr()?.to_string();
+        let mut mailbox = MailBox::open(&config)?; // Opens the mailbox to save the received messages
+
         match rv {
-            Raven::Text { text } => println!("Received text: {}", text),
+            Raven::Text { text } => { 
+                mailbox.add_message(sender, chrono::Utc::now(), text);
+                mailbox.save(&config)?;
+            },
             Raven::File { name, content } => {
                 // Gets the folder where the files will be stored and ensures that it exists
                 let raven_arrivals = format!("{}/data", &config.raven_home);
@@ -36,7 +42,8 @@ pub(crate) fn receive(from: String, port: u16, config: Config) -> Result<(), Box
 
                 // Writes the file to the disk
                 std::fs::write(&path, content)?;
-                println!("Received file: {}", path);
+                mailbox.add_file(sender, chrono::Utc::now(), path);
+                mailbox.save(&config)?;
             }
         }
     }

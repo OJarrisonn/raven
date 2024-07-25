@@ -46,6 +46,7 @@ pub enum Subcommands {
         #[arg(value_name = "FILE")]
         file: String,
     },
+    /// Manages the mailbox with your received messages and files
     Mailbox {
         #[command(subcommand)]
         commands: MailboxSubcommands,
