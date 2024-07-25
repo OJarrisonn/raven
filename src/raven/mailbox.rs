@@ -200,10 +200,10 @@ pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn
 
             if file {
                 mailbox.remove_file(index);
-            }
-
-            if message {
+            } else if message {
                 mailbox.remove_message(index);
+            } else {
+                return Err("You must specify if you want to delete a file or a message".into());    
             }
 
             mailbox.save(&config)?;
@@ -219,10 +219,10 @@ pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn
 
             if file {
                 mailbox.show_file(index);
-            }
-
-            if message {
+            } else if message {
                 mailbox.show_message(index);
+            } else {
+                return Err("You must specify if you want to see a file or a message".into());
             }
         }
     }
