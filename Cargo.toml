@@ -2,6 +2,13 @@
 name = "raven"
 version = "0.0.3"
 edition = "2021"
+authors = [ "Jorge Harrisonn <j.h.m.t.v.10@gmail.com>" ]
+description = "A CLI tool to share data across your devices in your local/private networks."
+
+repository = "https://github.com/OJarrisonn/raven"
+license-file = "LICENSE"
+readme = "README.md"
+keywords = ["cli", "networking"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

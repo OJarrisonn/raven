@@ -3,7 +3,10 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(propagate_version = true)]
-#[command(version, about, long_about = None)]
+#[command(version)]
+/// Raven is a CLI tool to share data across your devices in your local/private networks.
+/// Instantiate a receiving end and then send text messages or files to it from your other devices in your local network.
+/// Raven can be configured with `config.toml` in the raven home directory (either `$HOME/.raven` or `$RAVEN_HOME`).
 pub struct Cli {
     #[command(subcommand)]
     pub commands: Subcommands,
@@ -11,12 +14,14 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Subcommands {
-    /// Opens the client for receiving messages from a raven
+    /// Opens the client for receiving messages from a raven. 
+    /// Messages received will be saved in the mailbox. 
+    /// Files are saved in the raven home directory under the `data/` folder.
     Receive {
-        /// The address where to open the socket for the raven to arrive
+        /// The address where to open the socket for the raven to arrive (defaults to receiver.address in config.toml)
         #[arg(long, value_name = "ADDRESS")]
         from: Option<String>,
-        /// The port where to open the socket for the raven to arrive
+        /// The port where to open the socket for the raven to arrive (defaults to receiver.port in config.toml)
         #[arg(short, long, value_name = "PORT")]
         port: Option<u16>,
     },
