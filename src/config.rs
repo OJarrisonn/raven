@@ -41,9 +41,11 @@ impl Config {
 
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
         let config_path = format!("{}/config.toml", Self::raven_home());
-        let config = std::fs::read_to_string(config_path)?;
-
-        Ok(toml::from_str(&config)?)
+        
+        match std::fs::read_to_string(config_path) {
+            Ok(config) => Ok(toml::from_str(&config)?),
+            Err(_) => Ok(Self::new()),
+        }
     }
 
     pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
