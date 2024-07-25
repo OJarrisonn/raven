@@ -1,22 +1,22 @@
-use std::{error::Error, path::Display};
+use std::error::Error;
 
 use serde_derive::{Deserialize, Serialize};
 use toml::value::Datetime;
 
-use crate::{config::Config, util};
+use crate::{cli::MailboxSubcommands, config::Config, util};
 
 /// The mailbox is the structure that holds the messages and files that the client has received.
 /// 
 /// The mailbox is filled by the `receive` subcommand, while can be managed by the `mailbox` subcommand.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MailBox {
+struct MailBox {
     pub messages: Vec<MailMessage>,
     pub files: Vec<MailFile>,
 }
 
 /// A message is a text message that the client has received.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MailMessage {
+struct MailMessage {
     pub from: String,
     pub when: Datetime,
     pub text: String,
@@ -24,13 +24,13 @@ pub struct MailMessage {
 
 /// A file is a file that the client has received.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MailFile {
+struct MailFile {
     pub from: String,
     pub when: Datetime,
     pub name: String,
 }
 
-pub trait Summarizable {
+trait Summarizable {
     fn summary(&self) -> String;
 }
 
@@ -80,24 +80,29 @@ impl MailBox {
         self.files.remove(index);
     }
 
-    pub fn show(&self, messages: bool, files: bool) {
+    pub fn list(&self, mut messages: bool, mut files: bool) {
+        if !messages && !files {
+            messages = true;
+            files = true;
+        }
+
         if messages {
-            self.show_messages();
+            self.list_messages();
         }
 
         if files {
-            self.show_files();
+            self.list_files();
         }
     }
 
-    fn show_messages(&self) {
+    fn list_messages(&self) {
         println!("Messages:");
         for (i, message) in self.messages.iter().enumerate() {
             println!("{}: {}", i, message.summary());
         }
     }
 
-    fn show_files(&self) {
+    fn list_files(&self) {
         println!("Files:");
         for (i, file) in self.files.iter().enumerate() {
             println!("{}: {}", i, file.summary());
@@ -135,4 +140,41 @@ impl Summarizable for MailFile {
     fn summary(&self) -> String {
         format!("[{}] From: {} :: {}", self.when, self.from, self.name)
     }
+}
+
+pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn Error>> {
+    let mut mailbox = MailBox::open(&config)?;
+
+    match command {
+        MailboxSubcommands::List { files, messages } => mailbox.list(files, messages),
+        MailboxSubcommands::Delete { index, file, message } => {
+            if file && message {
+                return Err("You can't delete a file and a message at the same time".into());
+            }
+
+            if file {
+                mailbox.remove_file(index);
+            }
+
+            if message {
+                mailbox.remove_message(index);
+            }
+        },
+        MailboxSubcommands::Show { index, file, message } => {
+            if file && message {
+                return Err("You can't show a file and a message at the same time".into());
+            }
+
+            if file {
+                mailbox.show_file(index);
+            }
+
+            if message {
+                mailbox.show_message(index);
+            }
+        },
+
+    }
+
+    Ok(())
 }

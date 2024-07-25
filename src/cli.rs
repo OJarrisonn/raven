@@ -46,4 +46,39 @@ pub enum Subcommands {
         #[arg(value_name = "FILE")]
         file: String,
     },
+    Mailbox {
+        #[command(subcommand)]
+        commands: MailboxSubcommands,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum MailboxSubcommands {
+    /// Lists the messages and files in the mailbox
+    List {
+        #[arg(short, long, default_value_t = false)]
+        files: bool,
+        #[arg(short, long, default_value_t = false)]
+        messages: bool,
+    },
+    /// Deletes a message or file from the mailbox
+    Delete {
+        /// The index of the message or file to delete
+        #[arg(value_name = "ID")]
+        index: usize,
+        #[arg(short, long, default_value_t = false)]
+        file: bool,
+        #[arg(short, long, default_value_t = false)]
+        message: bool,
+    },
+    /// Opens a message or file from the mailbox
+    Show {
+        /// The index of the message or file to open
+        #[arg(value_name = "ID")]
+        index: usize,
+        #[arg(short, long, default_value_t = false)]
+        file: bool,
+        #[arg(short, long, default_value_t = false)]
+        message: bool,
+    },
 }

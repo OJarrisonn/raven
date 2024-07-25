@@ -3,7 +3,7 @@ use std::error::Error;
 use clap::Parser;
 use cli::{Cli, Subcommands};
 use config::Config;
-use raven::{receive, send};
+use raven::{mailbox, receive, send};
 
 mod cli;
 mod config;
@@ -22,5 +22,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         ),
         Subcommands::Send { to, port, message } => send::send(&to, port, message),
         Subcommands::SendFile { to, port, file } => send::send_file(&to, port, file),
+        Subcommands::Mailbox { commands } => mailbox::manage(commands, config),
     }
 }
