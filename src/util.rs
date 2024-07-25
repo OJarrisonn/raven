@@ -1,5 +1,8 @@
 use std::{ffi::OsStr, path::Path};
 
+use chrono::{DateTime, Datelike, Local, TimeZone, Timelike, Utc};
+use toml::value::{Date, Datetime, Time};
+
 pub const LISTEN_DEFAULT_ADDRESS: &str = "0.0.0.0";
 pub const LISTEN_DEFAULT_PORT: u16 = 12345;
 
@@ -43,6 +46,50 @@ pub fn non_colliding_filename(path: &str) -> String {
     }
 
     path
+}
+
+pub fn chrono_to_toml_date(date: chrono::NaiveDate) -> Date {
+    Date {
+        year: date.year() as u16,
+        month: date.month() as u8,
+        day: date.day() as u8,
+    }
+}
+
+pub fn chrono_to_toml_datetime(date: chrono::NaiveDateTime) -> Datetime {
+    let tdate = chrono_to_toml_date(date.date());
+    let time = Time {
+        hour: date.hour() as u8,
+        minute: date.minute() as u8,
+        second: date.second() as u8,
+        nanosecond: 0,
+    };
+
+    Datetime {
+        date: Some(tdate),
+        time: Some(time),
+        offset: None,
+    }
+}
+
+pub fn toml_to_chrono_datetime(date: Datetime) -> chrono::NaiveDateTime {
+    let time = date.time.unwrap();
+    let date = date.date.unwrap();
+
+    let date = chrono::NaiveDate::from_ymd_opt(date.year as i32, date.month as u32, date.day as u32);
+    let time = chrono::NaiveTime::from_hms_opt(time.hour as u32, time.minute as u32, time.second as u32);
+
+    match (date, time) {
+        (Some(date), Some(time)) => date.and_time(time),
+        _ => panic!("Invalid date or time"),
+    }
+}
+
+pub fn fmt_datetime(date: chrono::NaiveDateTime) -> String {
+    let date = Utc.from_utc_datetime(&date);
+    let date = date.with_timezone(&Local);
+    
+    date.format("%Y/%m/%d %H:%M:%S").to_string()
 }
 
 #[cfg(test)]
