@@ -26,11 +26,17 @@ pub(crate) fn receive(from: String, port: u16, config: Config) -> Result<(), Box
         match rv {
             Raven::Text { text } => println!("Received text: {}", text),
             Raven::File { name, content } => {
+                // Gets the folder where the files will be stored and ensures that it exists
                 let raven_arrivals = format!("{}/data", &config.raven_home);
                 util::ensure_folder(&raven_arrivals)?;
+                
+                // Gets a non colliding filename
+                let path = format!("{}/{}", raven_arrivals, name);
+                let path = util::non_colliding_filename(&path);
 
-                std::fs::write(format!("{}/{}", raven_arrivals, name), content)?;
-                println!("Received file: {}", name);
+                // Writes the file to the disk
+                std::fs::write(&path, content)?;
+                println!("Received file: {}", path);
             }
         }
     }
