@@ -1,4 +1,4 @@
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::util::{self, ensure_folder, LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
 

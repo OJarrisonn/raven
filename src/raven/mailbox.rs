@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use chrono::{DateTime, Utc};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use toml::value::Datetime;
 
 use crate::{cli::MailboxSubcommands, config::Config, util};
@@ -203,7 +203,7 @@ pub fn manage(command: MailboxSubcommands, config: Config) -> Result<(), Box<dyn
             } else if message {
                 mailbox.remove_message(index);
             } else {
-                return Err("You must specify if you want to delete a file or a message".into());    
+                return Err("You must specify if you want to delete a file or a message".into());
             }
 
             mailbox.save(&config)?;
