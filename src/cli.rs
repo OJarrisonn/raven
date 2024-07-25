@@ -1,4 +1,4 @@
-use crate::util::{LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
+use crate::util::LISTEN_DEFAULT_PORT;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
