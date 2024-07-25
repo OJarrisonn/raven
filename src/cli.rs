@@ -4,6 +4,7 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(propagate_version = true)]
 #[command(version)]
+#[command(name = "raven")]
 /// Raven is a CLI tool to share data across your devices in your local/private networks.
 /// Instantiate a receiving end and then send text messages or files to it from your other devices in your local network.
 /// Raven can be configured with `config.toml` in the raven home directory (either `$HOME/.raven` or `$RAVEN_HOME`).

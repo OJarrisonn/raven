@@ -1,5 +1,5 @@
 [package]
-name = "raven"
+name = "rv-raven"
 version = "0.0.3"
 edition = "2021"
 authors = [ "Jorge Harrisonn <j.h.m.t.v.10@gmail.com>" ]
@@ -11,6 +11,10 @@ readme = "README.md"
 keywords = ["cli", "networking"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "rv"
+path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.86"
