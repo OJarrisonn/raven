@@ -4,6 +4,8 @@ use anyhow::{Context, Result};
 use chrono::{Datelike, Local, TimeZone, Timelike, Utc};
 use toml::value::{Date, Datetime, Time};
 
+use crate::config::Config;
+
 pub const LISTEN_DEFAULT_ADDRESS: &str = "0.0.0.0";
 pub const LISTEN_DEFAULT_PORT: u16 = 12345;
 
@@ -13,6 +15,10 @@ pub fn listen_default_address() -> String {
 
 pub fn listen_default_port() -> u16 {
     LISTEN_DEFAULT_PORT
+}
+
+pub fn keys_default_location() -> String {
+    format!("{}/keys/", Config::raven_home())
 }
 
 pub fn is_ipv4_address(address: &str) -> bool {

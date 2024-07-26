@@ -1,4 +1,4 @@
-use std::{io::Read, net::{TcpListener, TcpStream}, sync::Arc};
+use std::{io::Read, net::TcpStream, sync::Arc};
 
 use anyhow::{bail, Context, Result};
 
@@ -7,6 +7,8 @@ use crate::{
     raven::{mailbox::MailBox, Raven},
     util,
 };
+
+mod helo;
 
 /// Opens the client for receiving messages from a raven
 /// The receiver works in a loop, listening for incoming connections and printing the received message.
@@ -35,7 +37,12 @@ pub fn receive(mut stream: TcpStream, config: Arc<Config>) -> Result<()> {
 
     match rv {
         Raven::Text { text } => message(&config, sender, text),
-        Raven::File { name, content } => file(&config, sender, name, content)
+        Raven::File { name, content } => file(&config, sender, name, content),
+        Raven::Helo { key: _ } => todo!("Implement the HELO protocol"),
+        Raven::Bye => {
+            println!("Connection closed: {}", &sender);
+            Ok(())
+        }
     }
 }
 
@@ -65,6 +72,6 @@ fn file(config: &Config, sender: String, name: String, content: Vec<u8>) -> Resu
     let mut mailbox = MailBox::open(&config).context("Opening the mailbox")?; // Opens the mailbox to save the received messages
     mailbox.add_file(sender, chrono::Utc::now(), path);
     mailbox.save(&config)?;
-    
+
     Ok(())
 }

@@ -14,6 +14,9 @@ pub struct Config {
     /// The receiver configuration.
     #[serde(default = "Receiver::default")]
     pub receiver: Receiver,
+    /// The keypair configuration.
+    #[serde(default = "Keys::default")]
+    pub keys: Keys,
 }
 
 /// Describes the configuration of the receiver.
@@ -25,6 +28,12 @@ pub struct Receiver {
     /// The port where the receiver will listen.
     #[serde(default = "util::listen_default_port")]
     pub port: u16,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Keys {
+    #[serde(default = "util::keys_default_location")]
+    pub location: String,
 }
 
 impl Config {
@@ -97,6 +106,7 @@ impl Default for Config {
             // TODO: add context for when HOME env var is not set
             raven_home: Self::raven_home(),
             receiver: Default::default(),
+            keys: Default::default(),
         }
     }
 }
@@ -106,6 +116,14 @@ impl Default for Receiver {
         Receiver {
             address: LISTEN_DEFAULT_ADDRESS.into(),
             port: LISTEN_DEFAULT_PORT,
+        }
+    }
+}
+
+impl Default for Keys {
+    fn default() -> Self {
+        Keys {
+            location: util::keys_default_location(),
         }
     }
 }
