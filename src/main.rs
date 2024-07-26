@@ -1,14 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use cli::{Cli, Subcommands};
-use config::Config;
-use raven::{mailbox, receive, send};
-
-mod cli;
-mod config;
-mod error;
-mod raven;
-mod util;
+use rv_raven::{cli::{Cli, Subcommands}, config::Config, raven::{mailbox, receive, send}};
 
 fn main() -> Result<()> {
     let cli = Cli::parse();

@@ -13,7 +13,7 @@ use crate::{
 /// The receiver will listen on the provided ipv4 address(`from`) and `port`.
 ///
 /// This function actually only returns an error if the connection fails to be established. Otherwise it will loop forever.
-pub(crate) fn receive(from: String, port: u16, config: Config) -> Result<()> {
+pub fn receive(from: String, port: u16, config: Config) -> Result<()> {
     if !util::is_ipv4_address(&from) {
         bail!("Invalid ipv4 address {}", from);
     }
