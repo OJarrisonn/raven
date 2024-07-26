@@ -1,0 +1,17 @@
+- [ ] Frontend
+  - Improve visual aspect
+- [ ] Backend
+  - A daemon
+  - Manages incoming ravens
+  - Manages authentication
+- [ ] Authentication
+  - Uses public/private keys
+  - Register cleints as trustable (by the key/address pair)
+- [ ] Encryption
+  - Protects the data being sent using the authentication keys
+- [ ] Compression
+  - Compress data being sent
+- [ ] Granularity
+  - Long ravens must be split into a series of short ravens so the other client can safely cut the stream when it needs
+- [ ] Manpage
+- [ ] docs.rs
