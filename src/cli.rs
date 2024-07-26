@@ -15,18 +15,6 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Subcommands {
-    /// Opens the client for receiving messages from a raven.
-    /// Messages received will be saved in the mailbox.
-    /// Files are saved in the raven home directory under the `data/` folder.
-    Receive {
-        /// The address where to open the socket for the raven to arrive (defaults to receiver.address in config.toml)
-        #[arg(long, value_name = "ADDRESS")]
-        from: Option<String>,
-        /// The port where to open the socket for the raven to arrive (defaults to receiver.port in config.toml)
-        #[arg(short, long, value_name = "PORT")]
-        port: Option<u16>,
-    },
-
     /// Sends a message by a raven to another client
     Send {
         /// The raven's destination address

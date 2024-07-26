@@ -16,6 +16,10 @@ keywords = ["cli", "networking"]
 name = "rv"
 path = "src/main.rs"
 
+[[bin]]
+name = "rvd"
+path = "src/daemon.rs"
+
 [dependencies]
 anyhow = "1.0.86"
 bincode = "1.3.3"

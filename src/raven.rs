@@ -17,3 +17,9 @@ pub enum Raven {
     /// A file with the name and the content as a byte stream
     File { name: String, content: Vec<u8> },
 }
+
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SysRaven {
+    
+}
