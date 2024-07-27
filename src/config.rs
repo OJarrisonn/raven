@@ -1,6 +1,7 @@
 use std::io::ErrorKind;
 
 use anyhow::{Context, Result};
+use interprocess::local_socket::{GenericFilePath, Name, ToFsName};
 use serde::{Deserialize, Serialize};
 
 use crate::util::{self, ensure_folder, LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
@@ -49,6 +50,10 @@ impl Config {
                 format!("{}/.raven", path.to_str().unwrap())
             }
         }
+    }
+
+    pub fn raven_sock_name(&self) -> Result<Name> {
+        format!("{}/raven.sock", self.raven_home).to_fs_name::<GenericFilePath>().map_err(Into::into)
     }
 
     /// Loads the configuration from the raven home folder in config.toml.

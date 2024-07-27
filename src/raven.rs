@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 pub mod mailbox;
-pub mod receive;
 pub mod send;
 
 /// The raven is the message that the client will send or receive.

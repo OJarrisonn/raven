@@ -1,8 +1,8 @@
-use std::{io::Read, net::{TcpListener, TcpStream}, sync::Arc};
+use std::{io::Read, net::TcpStream, sync::Arc};
 
 use anyhow::{bail, Context, Result};
 
-use crate::{
+use rv_raven::{
     config::Config,
     raven::{mailbox::MailBox, Raven},
     util,
