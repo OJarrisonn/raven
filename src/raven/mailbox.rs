@@ -1,9 +1,9 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use toml::value::Datetime;
 
-use crate::{cli::MailboxSubcommands, config::Config, util};
+use crate::{config::Config, util};
 
 /// The mailbox is the structure that holds the messages and files that the client has received.
 ///
@@ -184,50 +184,4 @@ impl Summarizable for MailFile {
             self.name
         )
     }
-}
-
-pub fn manage(command: MailboxSubcommands, config: Config) -> Result<()> {
-    let mut mailbox = MailBox::open(&config)?;
-
-    match command {
-        MailboxSubcommands::List { files, messages } => mailbox.list(files, messages),
-        MailboxSubcommands::Delete {
-            index,
-            file,
-            message,
-        } => {
-            if file && message {
-                bail!("You can't delete a file and a message at the same time");
-            }
-
-            if file {
-                mailbox.remove_file(index);
-            } else if message {
-                mailbox.remove_message(index);
-            } else {
-                bail!("You must specify if you want to delete a file or a message");
-            }
-
-            mailbox.save(&config)?;
-        }
-        MailboxSubcommands::Show {
-            index,
-            file,
-            message,
-        } => {
-            if file && message {
-                bail!("You can't show a file and a message at the same time");
-            }
-
-            if file {
-                mailbox.show_file(index);
-            } else if message {
-                mailbox.show_message(index);
-            } else {
-                bail!("You must specify if you want to see a file or a message");
-            }
-        }
-    }
-
-    Ok(())
 }

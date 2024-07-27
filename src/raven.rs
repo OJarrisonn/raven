@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 pub mod mailbox;
-pub mod send;
 
 /// The raven is the message that the client will send or receive.
 /// It can be both a text message or a file.
@@ -20,5 +19,7 @@ pub enum Raven {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SysRaven {
-    
+    Send { to: String, port: u16, message: String },
+    Ok,
+    Error { message: String },
 }

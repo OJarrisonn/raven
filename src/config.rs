@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use interprocess::local_socket::{GenericFilePath, Name, ToFsName};
 use serde::{Deserialize, Serialize};
 
-use crate::util::{self, ensure_folder, LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT};
+use crate::util::{self, ensure_folder, LISTEN_DEFAULT_ADDRESS, LISTEN_DEFAULT_PORT, LOCAL_DEFAULT_PORT};
 
 /// Describes the configuration of the raven client.
 #[derive(Debug, Serialize, Deserialize)]
@@ -15,11 +15,23 @@ pub struct Config {
     /// The receiver configuration.
     #[serde(default = "Receiver::default")]
     pub receiver: Receiver,
+    #[serde(default = "Local::default")]
+    pub local: Local,
 }
 
 /// Describes the configuration of the receiver.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Receiver {
+    /// The ipv4 address where the receiver will listen.
+    #[serde(default = "util::listen_default_address")]
+    pub address: String,
+    /// The port where the receiver will listen.
+    #[serde(default = "util::listen_default_port")]
+    pub port: u16,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Local {
     /// The ipv4 address where the receiver will listen.
     #[serde(default = "util::listen_default_address")]
     pub address: String,
@@ -102,6 +114,7 @@ impl Default for Config {
             // TODO: add context for when HOME env var is not set
             raven_home: Self::raven_home(),
             receiver: Default::default(),
+            local: Default::default(),
         }
     }
 }
@@ -111,6 +124,15 @@ impl Default for Receiver {
         Receiver {
             address: LISTEN_DEFAULT_ADDRESS.into(),
             port: LISTEN_DEFAULT_PORT,
+        }
+    }
+}
+
+impl Default for Local {
+    fn default() -> Self {
+        Self {
+            address: LISTEN_DEFAULT_ADDRESS.into(),
+            port: LOCAL_DEFAULT_PORT
         }
     }
 }

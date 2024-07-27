@@ -14,11 +14,11 @@ keywords = ["cli", "networking"]
 
 [[bin]]
 name = "rv"
-path = "src/main.rs"
+path = "src/front/main.rs"
 
 [[bin]]
 name = "rvd"
-path = "src/daemon.rs"
+path = "src/daemon/main.rs"
 
 [dependencies]
 anyhow = "1.0.86"

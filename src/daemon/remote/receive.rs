@@ -3,7 +3,7 @@ use std::{io::Read, net::TcpStream, sync::Arc};
 use anyhow::{bail, Context, Result};
 
 use rv_raven::{
-    config::Config,
+    config::Config, 
     raven::{mailbox::MailBox, Raven},
     util,
 };

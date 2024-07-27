@@ -12,8 +12,11 @@ fn main() -> Result<()> {
     let remote = Arc::clone(&config);
     let local = Arc::clone(&config);
     
-    let _remote = thread::spawn(move || { remote::remote(remote) });
-    let _local = thread::spawn(move || { local::local(local) });
+    let remote = thread::spawn(move || { remote::remote(remote) });
+    let local = thread::spawn(move || { local::local(local) });
+
+    local.join().unwrap()?;
+    remote.join().unwrap()?;
 
     Ok(())
 }
